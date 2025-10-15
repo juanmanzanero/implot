@@ -971,6 +971,7 @@ struct ImPlotLegend
     ImGuiTextBuffer   Labels;
     ImRect            Rect;
     ImRect            RectClamped;
+    ImFont*           Font{ nullptr };
     bool              Hovered;
     bool              Held;
     bool              CanGoInside;

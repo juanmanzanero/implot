@@ -3053,6 +3053,10 @@ void EndPlot() {
     // render legend
     if (!ImHasFlag(plot.Flags, ImPlotFlags_NoLegend) && plot.Items.GetLegendCount() > 0) {
         ImPlotLegend& legend = plot.Items.Legend;
+        if (legend.Font != nullptr) {
+            ImGui::PushFont(legend.Font);
+        }
+
         const bool   legend_out  = ImHasFlag(legend.Flags, ImPlotLegendFlags_Outside);
         const bool   legend_horz = ImHasFlag(legend.Flags, ImPlotLegendFlags_Horizontal);
         const ImVec2 legend_size = CalcLegendSize(plot.Items, gp.Style.LegendInnerPadding, gp.Style.LegendSpacing, !legend_horz);
@@ -3111,6 +3115,10 @@ void EndPlot() {
                                 && !ImHasFlag(legend.Flags, ImPlotLegendFlags_NoMenus);
         DrawList.AddRect(legend.RectClamped.Min, legend.RectClamped.Max, col_bd);
         ImGui::PopClipRect();
+
+        if (legend.Font != nullptr) {
+            ImGui::PopFont();
+        }
 
         // main ctx menu
         if (gp.OpenContextThisFrame && legend_contextable && !ImHasFlag(plot.Flags, ImPlotFlags_NoMenus))
