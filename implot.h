@@ -161,6 +161,7 @@ enum ImPlotAxisFlags_ {
     ImPlotAxisFlags_PanStretch    = 1 << 13, // panning in a locked or constrained state will cause the axis to stretch if possible
     ImPlotAxisFlags_LockMin       = 1 << 14, // the axis minimum value will be locked when panning/zooming
     ImPlotAxisFlags_LockMax       = 1 << 15, // the axis maximum value will be locked when panning/zooming
+    ImPlotAxisFlagsFlap_Synchronized = 1 << 16, // (flap!! If we will share this axis flags across different plots) 
     ImPlotAxisFlags_Lock          = ImPlotAxisFlags_LockMin | ImPlotAxisFlags_LockMax,
     ImPlotAxisFlags_NoDecorations = ImPlotAxisFlags_NoLabel | ImPlotAxisFlags_NoGridLines | ImPlotAxisFlags_NoTickMarks | ImPlotAxisFlags_NoTickLabels,
     ImPlotAxisFlags_AuxDefault    = ImPlotAxisFlags_NoGridLines | ImPlotAxisFlags_Opposite
@@ -873,6 +874,7 @@ IMPLOT_API void PlotStairsG(const char* label_id, ImPlotGetter getter, void* dat
 IMPLOT_TMP void PlotShaded(const char* label_id, const T* values, int count, double yref=0, double xscale=1, double xstart=0, ImPlotShadedFlags flags=0, int offset=0, int stride=sizeof(T));
 IMPLOT_TMP void PlotShaded(const char* label_id, const T* xs, const T* ys, int count, double yref=0, ImPlotShadedFlags flags=0, int offset=0, int stride=sizeof(T));
 IMPLOT_TMP void PlotShaded(const char* label_id, const T* xs, const T* ys1, const T* ys2, int count, ImPlotShadedFlags flags=0, int offset=0, int stride=sizeof(T));
+IMPLOT_TMP void PlotShaded(const char* label_id, const T* xs1, const T* ys1, const T* xs2, const T* ys2, int count, ImPlotShadedFlags flags=0, int offset=0, int stride=sizeof(T));
 IMPLOT_API void PlotShadedG(const char* label_id, ImPlotGetter getter1, void* data1, ImPlotGetter getter2, void* data2, int count, ImPlotShadedFlags flags=0);
 
 // Plots a bar graph. Vertical by default. #bar_size and #shift are in plot units.

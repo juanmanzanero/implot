@@ -1289,7 +1289,7 @@ struct RendererShaded : RendererBase {
             P12 = P22;
             return false;
         }
-        const int intersect = (P11.y > P12.y && P22.y > P21.y) || (P12.y > P11.y && P21.y > P22.y);
+        const int intersect = (P11.x == P12.x && P21.x == P22.x) ? ((P11.y > P12.y && P22.y > P21.y) || (P12.y > P11.y && P21.y > P22.y)) : 0;
         const ImVec2 intersection = intersect == 0 ? ImVec2(0,0) : Intersection(P11,P21,P12,P22);
         draw_list._VtxWritePtr[0].pos = P11;
         draw_list._VtxWritePtr[0].uv  = UV;
@@ -1804,10 +1804,20 @@ void PlotShaded(const char* label_id, const T* xs, const T* ys1, const T* ys2, i
     PlotShadedEx(label_id, getter1, getter2, flags);
 }
 
+
+template <typename T>
+void PlotShaded(const char* label_id, const T* xs1, const T* ys1, const T* xs2, const T* ys2, int count, ImPlotShadedFlags flags, int offset, int stride) {
+    GetterXY<IndexerIdx<T>,IndexerIdx<T>> getter1(IndexerIdx<T>(xs1,count,offset,stride),IndexerIdx<T>(ys1,count,offset,stride),count);
+    GetterXY<IndexerIdx<T>,IndexerIdx<T>> getter2(IndexerIdx<T>(xs2,count,offset,stride),IndexerIdx<T>(ys2,count,offset,stride),count);
+    PlotShadedEx(label_id, getter1, getter2, flags);
+}
+
+
 #define INSTANTIATE_MACRO(T) \
     template IMPLOT_API void PlotShaded<T>(const char* label_id, const T* values, int count, double y_ref, double xscale, double x0, ImPlotShadedFlags flags, int offset, int stride); \
     template IMPLOT_API void PlotShaded<T>(const char* label_id, const T* xs, const T* ys, int count, double y_ref, ImPlotShadedFlags flags, int offset, int stride); \
-    template IMPLOT_API void PlotShaded<T>(const char* label_id, const T* xs, const T* ys1, const T* ys2, int count, ImPlotShadedFlags flags, int offset, int stride);
+    template IMPLOT_API void PlotShaded<T>(const char* label_id, const T* xs, const T* ys1, const T* ys2, int count, ImPlotShadedFlags flags, int offset, int stride);\
+    template IMPLOT_API void PlotShaded<T>(const char* label_id, const T* xs1, const T* ys1, const T* xs2, const T* ys2, int count, ImPlotShadedFlags flags, int offset, int stride);
 CALL_INSTANTIATE_FOR_NUMERIC_TYPES()
 #undef INSTANTIATE_MACRO
 
@@ -2789,11 +2799,11 @@ void PlotDigitalG(const char* label_id, ImPlotGetter getter_func, void* data, in
 //-----------------------------------------------------------------------------
 
 #ifdef IMGUI_HAS_TEXTURES
-void PlotImage(const char* label_id, ImTextureRef tex_ref, const ImPlotPoint& bmin, const ImPlotPoint& bmax, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col, ImPlotImageFlags) {
+void PlotImage(const char* label_id, ImTextureRef tex_ref, const ImPlotPoint& bmin, const ImPlotPoint& bmax, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col, ImPlotImageFlags flags) {
 #else
-void PlotImage(const char* label_id, ImTextureID tex_ref, const ImPlotPoint& bmin, const ImPlotPoint& bmax, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col, ImPlotImageFlags) {
+void PlotImage(const char* label_id, ImTextureID tex_ref, const ImPlotPoint& bmin, const ImPlotPoint& bmax, const ImVec2& uv0, const ImVec2& uv1, const ImVec4& tint_col, ImPlotImageFlags flags) {
 #endif
-    if (BeginItemEx(label_id, FitterRect(bmin,bmax))) {
+    if (BeginItemEx(label_id, FitterRect(bmin,bmax), flags)) {
         ImU32 tint_col32 = ImGui::ColorConvertFloat4ToU32(tint_col);
         GetCurrentItem()->Color = tint_col32;
         ImDrawList& draw_list = *GetPlotDrawList();

@@ -133,6 +133,7 @@ You can read releases logs https://github.com/epezent/implot/releases for more d
 #include "implot_internal.h"
 
 #include <stdlib.h>
+#include <cmath>
 
 // Support for pre-1.82 versions. Users on 1.82+ can use 0 (default) flags to mean "all corners" but in order to support older versions we are more explicit.
 #if (IMGUI_VERSION_NUM < 18102) && !defined(ImDrawFlags_RoundCornersAll)
@@ -1352,6 +1353,7 @@ void ShowAxisContextMenu(ImPlotAxis& axis, ImPlotAxis* equal_axis, bool /*time_a
     bool grid            = axis.HasGridLines();
     bool ticks           = axis.HasTickMarks();
     bool labels          = axis.HasTickLabels();
+    bool flap_sync = ImHasFlag(axis.Flags, ImPlotAxisFlagsFlap_Synchronized);
     double drag_speed    = (axis.Range.Size() <= DBL_EPSILON) ? DBL_EPSILON * 1.0e+13 : 0.01 * axis.Range.Size(); // recover from almost equal axis limits.
 
     if (axis.Scale == ImPlotScale_Time) {
@@ -1457,6 +1459,10 @@ void ShowAxisContextMenu(ImPlotAxis& axis, ImPlotAxis* equal_axis, bool /*time_a
     if (ImGui::Checkbox("Tick Labels", &labels))
         ImFlipFlag(axis.Flags, ImPlotAxisFlags_NoTickLabels);
 
+    ImGui::Separator();
+    if (ImGui::Checkbox("Synchronized Range", &flap_sync)) {
+        ImFlipFlag(axis.Flags, ImPlotAxisFlagsFlap_Synchronized);
+    }
 }
 
 bool ShowLegendContextMenu(ImPlotLegend& legend, bool visible) {
@@ -1570,8 +1576,6 @@ void ShowPlotContextMenu(ImPlotPlot& plot) {
         EndDisabledControls(plot.TitleOffset == -1);
         if (ImGui::MenuItem("Mouse Position",nullptr,!ImHasFlag(plot.Flags, ImPlotFlags_NoMouseText)))
             ImFlipFlag(plot.Flags, ImPlotFlags_NoMouseText);
-        if (ImGui::MenuItem("Crosshairs",nullptr,ImHasFlag(plot.Flags, ImPlotFlags_Crosshairs)))
-            ImFlipFlag(plot.Flags, ImPlotFlags_Crosshairs);
         ImGui::EndMenu();
     }
     if (gp.CurrentSubplot != nullptr && !ImHasFlag(gp.CurrentSubplot->Flags, ImPlotSubplotFlags_NoMenus)) {
@@ -2032,8 +2036,8 @@ bool UpdateInput(ImPlotPlot& plot) {
 
     if (plot.Selecting) {
         const ImVec2 d = plot.SelectStart - IO.MousePos;
-        const bool x_can_change = !ImHasFlag(IO.KeyMods,gp.InputMap.SelectHorzMod) && ImFabs(d.x) > 2;
-        const bool y_can_change = !ImHasFlag(IO.KeyMods,gp.InputMap.SelectVertMod) && ImFabs(d.y) > 2;
+        const bool x_can_change = !ImHasFlag(IO.KeyMods,gp.InputMap.SelectHorzMod) && ImFabs(d.x) > 10;
+        const bool y_can_change = !ImHasFlag(IO.KeyMods,gp.InputMap.SelectVertMod) && ImFabs(d.y) > 10;
         // confirm
         if (IO.MouseReleased[gp.InputMap.Select]) {
             for (int i = 0; i < IMPLOT_NUM_X_AXES; i++) {
@@ -2080,8 +2084,21 @@ bool UpdateInput(ImPlotPlot& plot) {
                 plot.SelectRect.Max.x = full_width  ? plot.PlotRect.Max.x : ImMax(plot.SelectStart.x, IO.MousePos.x);
                 plot.SelectRect.Min.y = full_height ? plot.PlotRect.Min.y : ImMin(plot.SelectStart.y, IO.MousePos.y);
                 plot.SelectRect.Max.y = full_height ? plot.PlotRect.Max.y : ImMax(plot.SelectStart.y, IO.MousePos.y);
+
+                if (!x_can_change && y_can_change) {
+                    plot.SelectRect.Min.x = plot.SelectStart.x;
+                    plot.SelectRect.Max.x = plot.SelectStart.x;
+                }
+                if (!y_can_change && x_can_change) {
+                    plot.SelectRect.Min.y = plot.SelectStart.y;
+                    plot.SelectRect.Max.y = plot.SelectStart.y;
+                }
+
+
+
                 plot.SelectRect.Min  -= plot.PlotRect.Min;
                 plot.SelectRect.Max  -= plot.PlotRect.Min;
+
                 plot.Selected = true;
             }
         }
@@ -2920,6 +2937,7 @@ void EndPlot() {
         DrawList.AddLine(v1, v2, col);
         DrawList.AddLine(v3, v4, col);
     }
+
 
     // render mouse pos
     if (!ImHasFlag(plot.Flags, ImPlotFlags_NoMouseText) && (plot.Hovered || ImHasFlag(plot.MouseTextFlags, ImPlotMouseTextFlags_ShowAlways))) {
