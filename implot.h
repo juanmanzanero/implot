@@ -128,17 +128,18 @@ enum ImAxis_ {
 };
 
 // Options for plots (see BeginPlot).
+// They have been altered to be aligned with ImPlot3D
 enum ImPlotFlags_ {
     ImPlotFlags_None          = 0,       // default
     ImPlotFlags_NoTitle       = 1 << 0,  // the plot title will not be displayed (titles are also hidden if preceeded by double hashes, e.g. "##MyPlot")
     ImPlotFlags_NoLegend      = 1 << 1,  // the legend will not be displayed
     ImPlotFlags_NoMouseText   = 1 << 2,  // the mouse position, in plot coordinates, will not be displayed inside of the plot
-    ImPlotFlags_NoInputs      = 1 << 3,  // the user will not be able to interact with the plot
     ImPlotFlags_NoMenus       = 1 << 4,  // the user will not be able to open context menus
-    ImPlotFlags_NoBoxSelect   = 1 << 5,  // the user will not be able to box-select
-    ImPlotFlags_NoFrame       = 1 << 6,  // the ImGui frame will not be rendered
-    ImPlotFlags_Equal         = 1 << 7,  // x and y axes pairs will be constrained to have the same units/pixel
-    ImPlotFlags_Crosshairs    = 1 << 8,  // the default mouse cursor will be replaced with a crosshair when hovered
+    ImPlotFlags_Equal         = 1 << 5,  // x and y axes pairs will be constrained to have the same units/pixel
+    ImPlotFlags_NoInputs      = 1 << 6,  // the user will not be able to interact with the plot
+    ImPlotFlags_NoBoxSelect   = 1 << 7,  // the user will not be able to box-select
+    ImPlotFlags_NoFrame       = 1 << 8,  // the ImGui frame will not be rendered
+    ImPlotFlags_Crosshairs    = 1 << 10,  // the default mouse cursor will be replaced with a crosshair when hovered
     ImPlotFlags_CanvasOnly    = ImPlotFlags_NoTitle | ImPlotFlags_NoLegend | ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect | ImPlotFlags_NoMouseText
 };
 
@@ -149,18 +150,18 @@ enum ImPlotAxisFlags_ {
     ImPlotAxisFlags_NoGridLines   = 1 << 1,  // no grid lines will be displayed
     ImPlotAxisFlags_NoTickMarks   = 1 << 2,  // no tick marks will be displayed
     ImPlotAxisFlags_NoTickLabels  = 1 << 3,  // no text labels will be displayed
-    ImPlotAxisFlags_NoInitialFit  = 1 << 4,  // axis will not be initially fit to data extents on the first rendered frame
-    ImPlotAxisFlags_NoMenus       = 1 << 5,  // the user will not be able to open context menus with right-click
-    ImPlotAxisFlags_NoSideSwitch  = 1 << 6,  // the user will not be able to switch the axis side by dragging it
-    ImPlotAxisFlags_NoHighlight   = 1 << 7,  // the axis will not have its background highlighted when hovered or held
-    ImPlotAxisFlags_Opposite      = 1 << 8,  // axis ticks and labels will be rendered on the conventionally opposite side (i.e, right or top)
-    ImPlotAxisFlags_Foreground    = 1 << 9,  // grid lines will be displayed in the foreground (i.e. on top of data) instead of the background
-    ImPlotAxisFlags_Invert        = 1 << 10, // the axis will be inverted
-    ImPlotAxisFlags_AutoFit       = 1 << 11, // axis will be auto-fitting to data extents
-    ImPlotAxisFlags_RangeFit      = 1 << 12, // axis will only fit points if the point is in the visible range of the **orthogonal** axis
-    ImPlotAxisFlags_PanStretch    = 1 << 13, // panning in a locked or constrained state will cause the axis to stretch if possible
-    ImPlotAxisFlags_LockMin       = 1 << 14, // the axis minimum value will be locked when panning/zooming
-    ImPlotAxisFlags_LockMax       = 1 << 15, // the axis maximum value will be locked when panning/zooming
+    ImPlotAxisFlags_LockMin       = 1 << 4, // the axis minimum value will be locked when panning/zooming
+    ImPlotAxisFlags_LockMax       = 1 << 5, // the axis maximum value will be locked when panning/zooming
+    ImPlotAxisFlags_AutoFit       = 1 << 6, // axis will be auto-fitting to data extents
+    ImPlotAxisFlags_Invert        = 1 << 7, // the axis will be inverted
+    ImPlotAxisFlags_PanStretch    = 1 << 8, // panning in a locked or constrained state will cause the axis to stretch if possible
+    ImPlotAxisFlags_NoInitialFit  = 1 << 9,  // axis will not be initially fit to data extents on the first rendered frame
+    ImPlotAxisFlags_NoMenus       = 1 << 10,  // the user will not be able to open context menus with right-click
+    ImPlotAxisFlags_NoSideSwitch  = 1 << 11,  // the user will not be able to switch the axis side by dragging it
+    ImPlotAxisFlags_NoHighlight   = 1 << 12,  // the axis will not have its background highlighted when hovered or held
+    ImPlotAxisFlags_Opposite      = 1 << 13,  // axis ticks and labels will be rendered on the conventionally opposite side (i.e, right or top)
+    ImPlotAxisFlags_Foreground    = 1 << 14,  // grid lines will be displayed in the foreground (i.e. on top of data) instead of the background
+    ImPlotAxisFlags_RangeFit      = 1 << 15, // axis will only fit points if the point is in the visible range of the **orthogonal** axis
     ImPlotAxisFlagsFlap_Synchronized = 1 << 16, // (flap!! If we will share this axis flags across different plots) 
     ImPlotAxisFlags_Lock          = ImPlotAxisFlags_LockMin | ImPlotAxisFlags_LockMax,
     ImPlotAxisFlags_NoDecorations = ImPlotAxisFlags_NoLabel | ImPlotAxisFlags_NoGridLines | ImPlotAxisFlags_NoTickMarks | ImPlotAxisFlags_NoTickLabels,
