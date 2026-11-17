@@ -612,6 +612,10 @@ ImVec2 GetLocationPos(const ImRect& outer_rect, const ImVec2& inner_size, ImPlot
 }
 
 ImVec2 CalcLegendSize(ImPlotItemGroup& items, const ImVec2& pad, const ImVec2& spacing, bool vertical) {
+    const bool pushed_font = items.Legend.Font != nullptr;
+    if (pushed_font)
+        ImGui::PushFont(items.Legend.Font);
+
     // vars
     const int   nItems      = items.GetLegendCount();
     const float txt_ht      = ImGui::GetTextLineHeight();
@@ -629,6 +633,9 @@ ImVec2 CalcLegendSize(ImPlotItemGroup& items, const ImVec2& pad, const ImVec2& s
     const ImVec2 legend_size = vertical ?
                                ImVec2(pad.x * 2 + icon_size + max_label_width, pad.y * 2 + nItems * txt_ht + (nItems - 1) * spacing.y) :
                                ImVec2(pad.x * 2 + icon_size * nItems + sum_label_width + (nItems - 1) * spacing.x, pad.y * 2 + txt_ht);
+
+    if (pushed_font)
+        ImGui::PopFont();
     return legend_size;
 }
 
@@ -664,6 +671,10 @@ int LegendSortingComp(const void* _a, const void* _b) {
 }
 
 bool ShowLegendEntries(ImPlotItemGroup& items, const ImRect& legend_bb, bool hovered, const ImVec2& pad, const ImVec2& spacing, bool vertical, ImDrawList& DrawList) {
+    const bool pushed_font = items.Legend.Font != nullptr;
+    if (pushed_font)
+        ImGui::PushFont(items.Legend.Font);
+
     // vars
     const float txt_ht      = ImGui::GetTextLineHeight();
     const float icon_size   = txt_ht;
@@ -675,8 +686,11 @@ bool ShowLegendEntries(ImPlotItemGroup& items, const ImRect& legend_bb, bool hov
     bool any_item_hovered = false;
 
     const int num_items = items.GetLegendCount();
-    if (num_items < 1)
+    if (num_items < 1) {
+        if (pushed_font)
+            ImGui::PopFont();
         return hovered;
+    }
     // build render order
     ImPlotContext& gp = *GImPlot;
     ImVector<int>& indices = gp.TempInt1;
@@ -747,6 +761,8 @@ bool ShowLegendEntries(ImPlotItemGroup& items, const ImRect& legend_bb, bool hov
         if (label != text_display_end)
             DrawList.AddText(top_left + ImVec2(icon_size, 0), item->Show ? col_txt_hl  : col_txt_dis, label, text_display_end);
     }
+    if (pushed_font)
+        ImGui::PopFont();
     return hovered && !any_item_hovered;
 }
 
@@ -2423,6 +2439,14 @@ void SetupLegend(ImPlotLocation location, ImPlotLegendFlags flags) {
             legend.Flags = flags;
         legend.PreviousFlags = flags;
     }
+}
+
+void SetupLegendFont(ImFont* font) {
+    ImPlotContext& gp = *GImPlot;
+    IM_ASSERT_USER_ERROR((gp.CurrentPlot != nullptr && !gp.CurrentPlot->SetupLocked) || (gp.CurrentSubplot != nullptr && gp.CurrentPlot == nullptr),
+                         "Setup needs to be called after BeginPlot or BeginSubplots and before any setup locking functions (e.g. PlotX)!");
+    if (gp.CurrentItems != nullptr)
+        gp.CurrentItems->Legend.Font = font;
 }
 
 void SetupMouseText(ImPlotLocation location, ImPlotMouseTextFlags flags) {

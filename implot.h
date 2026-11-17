@@ -264,6 +264,7 @@ enum ImPlotItemFlags_ {
     ImPlotItemFlags_None     = 0,
     ImPlotItemFlags_NoLegend = 1 << 0, // the item won't have a legend entry displayed
     ImPlotItemFlags_NoFit    = 1 << 1, // the item won't be considered for plot fits
+    ImPlotItemFlags_NoFitX   = 1 << 2, // the item won't be considered for x-axis plot fits
 };
 
 // Flags for PlotLine. Used by setting ImPlotSpec::Flags.
@@ -903,6 +904,8 @@ IMPLOT_API void SetupAxesLimits(double x_min, double x_max, double y_min, double
 
 // Sets up the plot legend. This can also be called immediately after BeginSubplots when using ImPlotSubplotFlags_ShareItems.
 IMPLOT_API void SetupLegend(ImPlotLocation location, ImPlotLegendFlags flags=0);
+// Sets the font used to render and size the current plot/subplot legend. Pass nullptr to use the current ImGui font.
+IMPLOT_API void SetupLegendFont(ImFont* font);
 // Set the location of the current plot's mouse position text (default = South|East).
 IMPLOT_API void SetupMouseText(ImPlotLocation location, ImPlotMouseTextFlags flags=0);
 
@@ -1023,6 +1026,7 @@ IMPLOT_API void PlotStairsG(const char* label_id, ImPlotGetter getter, void* dat
 IMPLOT_TMP void PlotShaded(const char* label_id, const T* values, int count, double yref=0, double xscale=1, double xstart=0, const ImPlotSpec& spec=ImPlotSpec());
 IMPLOT_TMP void PlotShaded(const char* label_id, const T* xs, const T* ys, int count, double yref=0, const ImPlotSpec& spec=ImPlotSpec());
 IMPLOT_TMP void PlotShaded(const char* label_id, const T* xs, const T* ys1, const T* ys2, int count, const ImPlotSpec& spec=ImPlotSpec());
+IMPLOT_TMP void PlotShaded(const char* label_id, const T* xs1, const T* ys1, const T* xs2, const T* ys2, int count, const ImPlotSpec& spec=ImPlotSpec());
 IMPLOT_API void PlotShadedG(const char* label_id, ImPlotGetter getter1, void* data1, ImPlotGetter getter2, void* data2, int count, const ImPlotSpec& spec=ImPlotSpec());
 
 // Plots a bar graph. Vertical by default. #bar_size and #shift are in plot units.

@@ -1377,6 +1377,23 @@ struct RendererStairsPostShaded : RendererBase {
 
 
 
+static bool SegmentIntersection(const ImVec2& a1, const ImVec2& a2, const ImVec2& b1, const ImVec2& b2, ImVec2& intersection) {
+    const ImVec2 r = a2 - a1;
+    const ImVec2 s = b2 - b1;
+    const float denom = r.x * s.y - r.y * s.x;
+    if (ImFabs(denom) <= 1e-6f)
+        return false;
+
+    const ImVec2 q = b1 - a1;
+    const float t = (q.x * s.y - q.y * s.x) / denom;
+    const float u = (q.x * r.y - q.y * r.x) / denom;
+    if (t <= 0.0f || t >= 1.0f || u <= 0.0f || u >= 1.0f)
+        return false;
+
+    intersection = a1 + r * t;
+    return true;
+}
+
 template <class _Getter1, class _Getter2, class _GetterColor>
 struct RendererShaded : RendererBase {
     RendererShaded(const _Getter1& getter1, const _Getter2& getter2, const _GetterColor& getter_color) :
@@ -1401,8 +1418,8 @@ struct RendererShaded : RendererBase {
             return false;
         }
         ImU32 col = GetterColor[prim];
-        const int intersect = (P11.y > P12.y && P22.y > P21.y) || (P12.y > P11.y && P21.y > P22.y);
-        const ImVec2 intersection = intersect == 0 ? ImVec2(0,0) : Intersection(P11,P21,P12,P22);
+        ImVec2 intersection(0,0);
+        const int intersect = SegmentIntersection(P11, P21, P12, P22, intersection) ? 1 : 0;
         draw_list._VtxWritePtr[0].pos = P11;
         draw_list._VtxWritePtr[0].uv  = UV;
         draw_list._VtxWritePtr[0].col = col;
@@ -2305,10 +2322,18 @@ void PlotShaded(const char* label_id, const T* xs, const T* ys1, const T* ys2, i
     PlotShadedEx(label_id, getter1, getter2, spec);
 }
 
+template <typename T>
+void PlotShaded(const char* label_id, const T* xs1, const T* ys1, const T* xs2, const T* ys2, int count, const ImPlotSpec& spec) {
+    GetterXY<IndexerIdx<T>,IndexerIdx<T>> getter1(IndexerIdx<T>(xs1,count,spec.Offset,Stride<T>(spec)),IndexerIdx<T>(ys1,count,spec.Offset,Stride<T>(spec)),count);
+    GetterXY<IndexerIdx<T>,IndexerIdx<T>> getter2(IndexerIdx<T>(xs2,count,spec.Offset,Stride<T>(spec)),IndexerIdx<T>(ys2,count,spec.Offset,Stride<T>(spec)),count);
+    PlotShadedEx(label_id, getter1, getter2, spec);
+}
+
 #define INSTANTIATE_MACRO(T) \
     template IMPLOT_API void PlotShaded<T>(const char* label_id, const T* values, int count, double y_ref, double xscale, double x0, const ImPlotSpec& spec); \
     template IMPLOT_API void PlotShaded<T>(const char* label_id, const T* xs, const T* ys, int count, double y_ref, const ImPlotSpec& spec); \
-    template IMPLOT_API void PlotShaded<T>(const char* label_id, const T* xs, const T* ys1, const T* ys2, int count, const ImPlotSpec& spec);
+    template IMPLOT_API void PlotShaded<T>(const char* label_id, const T* xs, const T* ys1, const T* ys2, int count, const ImPlotSpec& spec); \
+    template IMPLOT_API void PlotShaded<T>(const char* label_id, const T* xs1, const T* ys1, const T* xs2, const T* ys2, int count, const ImPlotSpec& spec);
 CALL_INSTANTIATE_FOR_NUMERIC_TYPES()
 #undef INSTANTIATE_MACRO
 
