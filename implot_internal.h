@@ -1317,8 +1317,15 @@ template <typename _Fitter>
 bool BeginItemEx(const char* label_id, const _Fitter& fitter, ImPlotItemFlags flags=0, ImPlotCol recolor_from=IMPLOT_AUTO) {
     if (BeginItem(label_id, flags, recolor_from)) {
         ImPlotPlot& plot = *GetCurrentPlot();
-        if (plot.FitThisFrame && !ImHasFlag(flags, ImPlotItemFlags_NoFit))
-            fitter.Fit(plot.Axes[plot.CurrentX], plot.Axes[plot.CurrentY]);
+        if (plot.FitThisFrame && !ImHasFlag(flags, ImPlotItemFlags_NoFit)) {
+            if (!ImHasFlag(flags, ImPlotItemFlags_NoFitX)) {
+                fitter.Fit(plot.Axes[plot.CurrentX], plot.Axes[plot.CurrentY]);
+            }
+            else {
+                auto dummy = ImPlotAxis{};
+                fitter.Fit(dummy, plot.Axes[plot.CurrentY]);
+            }
+        }
         return true;
     }
     return false;
