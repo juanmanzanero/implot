@@ -1043,6 +1043,7 @@ struct ImPlotLegend
     ImGuiTextBuffer   Labels;
     ImRect            Rect;
     ImRect            RectClamped;
+    ImFont*           Font;
     bool              Hovered;
     bool              Held;
     bool              CanGoInside;
@@ -1053,6 +1054,7 @@ struct ImPlotLegend
         Hovered      = Held = false;
         Location     = PreviousLocation = ImPlotLocation_NorthWest;
         Scroll       = ImVec2(0,0);
+        Font         = nullptr;
     }
 
     void Reset() { Indices.shrink(0); Labels.Buf.shrink(0); }
@@ -1380,8 +1382,18 @@ template <typename _Fitter>
 bool BeginItemEx(const char* label_id, const _Fitter& fitter, const ImPlotSpec& spec, const ImVec4& item_col = IMPLOT_AUTO_COL, ImPlotMarker item_mkr = ImPlotMarker_Invalid) {
     if (BeginItem(label_id, spec, item_col, item_mkr)) {
         ImPlotPlot& plot = *GetCurrentPlot();
-        if (plot.FitThisFrame && !ImHasFlag(spec.Flags, ImPlotItemFlags_NoFit))
-            fitter.Fit(plot.Axes[plot.CurrentX], plot.Axes[plot.CurrentY]);
+        if (plot.FitThisFrame && !ImHasFlag(spec.Flags, ImPlotItemFlags_NoFit)) {
+            ImPlotAxis& x_axis = plot.Axes[plot.CurrentX];
+            ImPlotAxis& y_axis = plot.Axes[plot.CurrentY];
+            if (ImHasFlag(spec.Flags, ImPlotItemFlags_NoFitX)) {
+                const ImPlotRange x_fit_extents = x_axis.FitExtents;
+                fitter.Fit(x_axis, y_axis);
+                x_axis.FitExtents = x_fit_extents;
+            }
+            else {
+                fitter.Fit(x_axis, y_axis);
+            }
+        }
         return true;
     }
     return false;

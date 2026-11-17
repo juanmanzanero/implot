@@ -158,39 +158,46 @@ enum ImPlotProp_ {
 
 // Options for plots (see BeginPlot).
 enum ImPlotFlags_ {
-    ImPlotFlags_None          = 0,       // default
-    ImPlotFlags_NoTitle       = 1 << 0,  // the plot title will not be displayed (titles are also hidden if preceded by double hashes, e.g. "##MyPlot")
-    ImPlotFlags_NoLegend      = 1 << 1,  // the legend will not be displayed
-    ImPlotFlags_NoMouseText   = 1 << 2,  // the mouse position, in plot coordinates, will not be displayed inside of the plot
-    ImPlotFlags_NoInputs      = 1 << 3,  // the user will not be able to interact with the plot
-    ImPlotFlags_NoMenus       = 1 << 4,  // the user will not be able to open context menus
-    ImPlotFlags_NoBoxSelect   = 1 << 5,  // the user will not be able to box-select
-    ImPlotFlags_NoFrame       = 1 << 6,  // the ImGui frame will not be rendered
-    ImPlotFlags_Equal         = 1 << 7,  // x and y axes pairs will be constrained to have the same units/pixel
-    ImPlotFlags_Crosshairs    = 1 << 8,  // the default mouse cursor will be replaced with a crosshair when hovered
+    ImPlotFlags_None          = 0,        // default
+    ImPlotFlags_NoTitle       = 1 << 0,   // shared with ImPlot3DFlags_NoTitle
+    ImPlotFlags_NoLegend      = 1 << 1,   // shared with ImPlot3DFlags_NoLegend
+    ImPlotFlags_NoMouseText   = 1 << 2,   // shared with ImPlot3DFlags_NoMouseText
+    // 1 << 3 reserved for ImPlot3DFlags_NoClip
+    ImPlotFlags_NoMenus       = 1 << 4,   // shared with ImPlot3DFlags_NoMenus
+    ImPlotFlags_Equal         = 1 << 5,   // shared with ImPlot3DFlags_Equal
+    // 1 << 6 reserved for ImPlot3DFlags_NoRotate
+    // 1 << 7 reserved for ImPlot3DFlags_NoPan
+    // 1 << 8 reserved for ImPlot3DFlags_NoZoom
+    ImPlotFlags_NoInputs      = 1 << 9,   // shared with ImPlot3DFlags_NoInputs
+    // 1 << 10 reserved for ImPlot3DFlags_AutoScaleBox
+    // 1 << 11 reserved for ImPlot3DFlags_StretchBox
+    ImPlotFlags_NoBoxSelect   = 1 << 12,  // the user will not be able to box-select
+    ImPlotFlags_NoFrame       = 1 << 13,  // the ImGui frame will not be rendered
+    ImPlotFlags_Crosshairs    = 1 << 14,  // the default mouse cursor will be replaced with a crosshair when hovered
     ImPlotFlags_CanvasOnly    = ImPlotFlags_NoTitle | ImPlotFlags_NoLegend | ImPlotFlags_NoMenus | ImPlotFlags_NoBoxSelect | ImPlotFlags_NoMouseText
 };
 
 // Options for plot axes (see SetupAxis).
 enum ImPlotAxisFlags_ {
     ImPlotAxisFlags_None             = 0,       // default
-    ImPlotAxisFlags_NoLabel          = 1 << 0,  // the axis label will not be displayed (axis labels are also hidden if the supplied string name is nullptr)
-    ImPlotAxisFlags_NoGridLines      = 1 << 1,  // no grid lines will be displayed
-    ImPlotAxisFlags_NoTickMarks      = 1 << 2,  // no tick marks will be displayed
-    ImPlotAxisFlags_NoTickLabels     = 1 << 3,  // no text labels will be displayed
-    ImPlotAxisFlags_NoInitialFit     = 1 << 4,  // axis will not be initially fit to data extents on the first rendered frame
-    ImPlotAxisFlags_NoMenus          = 1 << 5,  // the user will not be able to open context menus with right-click
-    ImPlotAxisFlags_NoSideSwitch     = 1 << 6,  // the user will not be able to switch the axis side by dragging it
-    ImPlotAxisFlags_NoHighlight      = 1 << 7,  // the axis will not have its background highlighted when hovered or held
-    ImPlotAxisFlags_Opposite         = 1 << 8,  // axis ticks and labels will be rendered on the conventionally opposite side (i.e, right or top)
-    ImPlotAxisFlags_Foreground       = 1 << 9,  // grid lines will be displayed in the foreground (i.e. on top of data) instead of the background
-    ImPlotAxisFlags_Invert           = 1 << 10, // the axis will be inverted
-    ImPlotAxisFlags_AutoFit          = 1 << 11, // axis will be auto-fitting to data extents
-    ImPlotAxisFlags_RangeFit         = 1 << 12, // axis will only fit points if the point is in the visible range of the **orthogonal** axis
-    ImPlotAxisFlags_PanStretch       = 1 << 13, // panning in a locked or constrained state will cause the axis to stretch if possible
-    ImPlotAxisFlags_LockMin          = 1 << 14, // the axis minimum value will be locked when panning/zooming
-    ImPlotAxisFlags_LockMax          = 1 << 15, // the axis maximum value will be locked when panning/zooming
+    ImPlotAxisFlags_NoLabel          = 1 << 0,  // shared with ImPlot3DAxisFlags_NoLabel
+    ImPlotAxisFlags_NoGridLines      = 1 << 1,  // shared with ImPlot3DAxisFlags_NoGridLines
+    ImPlotAxisFlags_NoTickMarks      = 1 << 2,  // shared with ImPlot3DAxisFlags_NoTickMarks
+    ImPlotAxisFlags_NoTickLabels     = 1 << 3,  // shared with ImPlot3DAxisFlags_NoTickLabels
+    ImPlotAxisFlags_LockMin          = 1 << 4,  // shared with ImPlot3DAxisFlags_LockMin
+    ImPlotAxisFlags_LockMax          = 1 << 5,  // shared with ImPlot3DAxisFlags_LockMax
+    ImPlotAxisFlags_AutoFit          = 1 << 6,  // shared with ImPlot3DAxisFlags_AutoFit
+    ImPlotAxisFlags_Invert           = 1 << 7,  // shared with ImPlot3DAxisFlags_Invert
+    ImPlotAxisFlags_PanStretch       = 1 << 8,  // shared with ImPlot3DAxisFlags_PanStretch
+    ImPlotAxisFlags_NoInitialFit     = 1 << 9,  // axis will not be initially fit to data extents on the first rendered frame
+    ImPlotAxisFlags_NoMenus          = 1 << 10, // the user will not be able to open context menus with right-click
+    ImPlotAxisFlags_NoSideSwitch     = 1 << 11, // the user will not be able to switch the axis side by dragging it
+    ImPlotAxisFlags_NoHighlight      = 1 << 12, // the axis will not have its background highlighted when hovered or held
+    ImPlotAxisFlags_Opposite         = 1 << 13, // axis ticks and labels will be rendered on the conventionally opposite side (i.e. right or top)
+    ImPlotAxisFlags_Foreground       = 1 << 14, // grid lines will be displayed in the foreground (i.e. on top of data) instead of the background
+    ImPlotAxisFlags_RangeFit         = 1 << 15, // axis will only fit points if the point is in the visible range of the **orthogonal** axis
     ImPlotAxisFlags_TickLabelsInside = 1 << 16, // axis tick labels will be drawn inside the plot area (applies only to the innermost axes)
+    ImPlotAxisFlagsFlap_Synchronized = 1 << 17, // flap: share this axis range with synchronized plots
     ImPlotAxisFlags_Lock             = ImPlotAxisFlags_LockMin | ImPlotAxisFlags_LockMax,
     ImPlotAxisFlags_NoDecorations    = ImPlotAxisFlags_NoLabel | ImPlotAxisFlags_NoGridLines | ImPlotAxisFlags_NoTickMarks | ImPlotAxisFlags_NoTickLabels,
     ImPlotAxisFlags_AuxDefault       = ImPlotAxisFlags_NoGridLines | ImPlotAxisFlags_Opposite
@@ -257,6 +264,7 @@ enum ImPlotItemFlags_ {
     ImPlotItemFlags_None     = 0,
     ImPlotItemFlags_NoLegend = 1 << 0, // the item won't have a legend entry displayed
     ImPlotItemFlags_NoFit    = 1 << 1, // the item won't be considered for plot fits
+    ImPlotItemFlags_NoFitX   = 1 << 2, // the item won't be considered for x-axis plot fits
 };
 
 // Flags for PlotLine. Used by setting ImPlotSpec::Flags.
@@ -896,6 +904,8 @@ IMPLOT_API void SetupAxesLimits(double x_min, double x_max, double y_min, double
 
 // Sets up the plot legend. This can also be called immediately after BeginSubplots when using ImPlotSubplotFlags_ShareItems.
 IMPLOT_API void SetupLegend(ImPlotLocation location, ImPlotLegendFlags flags=0);
+// Sets the font used to render and size the current plot/subplot legend. Pass nullptr to use the current ImGui font.
+IMPLOT_API void SetupLegendFont(ImFont* font);
 // Set the location of the current plot's mouse position text (default = South|East).
 IMPLOT_API void SetupMouseText(ImPlotLocation location, ImPlotMouseTextFlags flags=0);
 
@@ -1016,6 +1026,7 @@ IMPLOT_API void PlotStairsG(const char* label_id, ImPlotGetter getter, void* dat
 IMPLOT_TMP void PlotShaded(const char* label_id, const T* values, int count, double yref=0, double xscale=1, double xstart=0, const ImPlotSpec& spec=ImPlotSpec());
 IMPLOT_TMP void PlotShaded(const char* label_id, const T* xs, const T* ys, int count, double yref=0, const ImPlotSpec& spec=ImPlotSpec());
 IMPLOT_TMP void PlotShaded(const char* label_id, const T* xs, const T* ys1, const T* ys2, int count, const ImPlotSpec& spec=ImPlotSpec());
+IMPLOT_TMP void PlotShaded(const char* label_id, const T* xs1, const T* ys1, const T* xs2, const T* ys2, int count, const ImPlotSpec& spec=ImPlotSpec());
 IMPLOT_API void PlotShadedG(const char* label_id, ImPlotGetter getter1, void* data1, ImPlotGetter getter2, void* data2, int count, const ImPlotSpec& spec=ImPlotSpec());
 
 // Plots a bar graph. Vertical by default. #bar_size and #shift are in plot units.

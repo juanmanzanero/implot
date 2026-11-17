@@ -612,6 +612,10 @@ ImVec2 GetLocationPos(const ImRect& outer_rect, const ImVec2& inner_size, ImPlot
 }
 
 ImVec2 CalcLegendSize(ImPlotItemGroup& items, const ImVec2& pad, const ImVec2& spacing, bool vertical) {
+    const bool pushed_font = items.Legend.Font != nullptr;
+    if (pushed_font)
+        ImGui::PushFont(items.Legend.Font);
+
     // vars
     const int   nItems      = items.GetLegendCount();
     const float txt_ht      = ImGui::GetTextLineHeight();
@@ -629,6 +633,9 @@ ImVec2 CalcLegendSize(ImPlotItemGroup& items, const ImVec2& pad, const ImVec2& s
     const ImVec2 legend_size = vertical ?
                                ImVec2(pad.x * 2 + icon_size + max_label_width, pad.y * 2 + nItems * txt_ht + (nItems - 1) * spacing.y) :
                                ImVec2(pad.x * 2 + icon_size * nItems + sum_label_width + (nItems - 1) * spacing.x, pad.y * 2 + txt_ht);
+
+    if (pushed_font)
+        ImGui::PopFont();
     return legend_size;
 }
 
@@ -664,6 +671,10 @@ int LegendSortingComp(const void* _a, const void* _b) {
 }
 
 bool ShowLegendEntries(ImPlotItemGroup& items, const ImRect& legend_bb, bool hovered, const ImVec2& pad, const ImVec2& spacing, bool vertical, ImDrawList& DrawList) {
+    const bool pushed_font = items.Legend.Font != nullptr;
+    if (pushed_font)
+        ImGui::PushFont(items.Legend.Font);
+
     // vars
     const float txt_ht      = ImGui::GetTextLineHeight();
     const float icon_size   = txt_ht;
@@ -675,8 +686,11 @@ bool ShowLegendEntries(ImPlotItemGroup& items, const ImRect& legend_bb, bool hov
     bool any_item_hovered = false;
 
     const int num_items = items.GetLegendCount();
-    if (num_items < 1)
+    if (num_items < 1) {
+        if (pushed_font)
+            ImGui::PopFont();
         return hovered;
+    }
     // build render order
     ImPlotContext& gp = *GImPlot;
     ImVector<int>& indices = gp.TempInt1;
@@ -747,6 +761,8 @@ bool ShowLegendEntries(ImPlotItemGroup& items, const ImRect& legend_bb, bool hov
         if (label != text_display_end)
             DrawList.AddText(top_left + ImVec2(icon_size, 0), item->Show ? col_txt_hl  : col_txt_dis, label, text_display_end);
     }
+    if (pushed_font)
+        ImGui::PopFont();
     return hovered && !any_item_hovered;
 }
 
@@ -1396,6 +1412,7 @@ void ShowAxisContextMenu(ImPlotAxis& axis, ImPlotAxis* equal_axis, bool /*time_a
     bool ticks           = axis.HasTickMarks();
     bool labels          = axis.HasTickLabels();
     bool labelsInside    = axis.HasTickLabelsInside();
+    bool flap_sync       = ImHasFlag(axis.Flags, ImPlotAxisFlagsFlap_Synchronized);
     double drag_speed    = (axis.Range.Size() <= DBL_EPSILON) ? DBL_EPSILON * 1.0e+13 : 0.01 * axis.Range.Size(); // recover from almost equal axis limits.
 
     if (axis.Scale == ImPlotScale_Time) {
@@ -1502,6 +1519,9 @@ void ShowAxisContextMenu(ImPlotAxis& axis, ImPlotAxis* equal_axis, bool /*time_a
         ImFlipFlag(axis.Flags, ImPlotAxisFlags_NoTickLabels);
     if (ImGui::Checkbox("Tick Labels Inside", &labelsInside))
         ImFlipFlag(axis.Flags, ImPlotAxisFlags_TickLabelsInside);
+    ImGui::Separator();
+    if (ImGui::Checkbox("Synchronized Range", &flap_sync))
+        ImFlipFlag(axis.Flags, ImPlotAxisFlagsFlap_Synchronized);
 }
 
 bool ShowLegendContextMenu(ImPlotLegend& legend, bool visible) {
@@ -1615,8 +1635,6 @@ void ShowPlotContextMenu(ImPlotPlot& plot) {
         EndDisabledControls(plot.TitleOffset == -1);
         if (ImGui::MenuItem("Mouse Position",nullptr,!ImHasFlag(plot.Flags, ImPlotFlags_NoMouseText)))
             ImFlipFlag(plot.Flags, ImPlotFlags_NoMouseText);
-        if (ImGui::MenuItem("Crosshairs",nullptr,ImHasFlag(plot.Flags, ImPlotFlags_Crosshairs)))
-            ImFlipFlag(plot.Flags, ImPlotFlags_Crosshairs);
         ImGui::EndMenu();
     }
     if (gp.CurrentSubplot != nullptr && !ImHasFlag(gp.CurrentSubplot->Flags, ImPlotSubplotFlags_NoMenus)) {
@@ -2127,8 +2145,8 @@ bool UpdateInput(ImPlotPlot& plot) {
 
     if (plot.Selecting) {
         const ImVec2 d = plot.SelectStart - IO.MousePos;
-        const bool x_can_change = !ImHasFlag(IO.KeyMods,gp.InputMap.SelectHorzMod) && ImFabs(d.x) > 2;
-        const bool y_can_change = !ImHasFlag(IO.KeyMods,gp.InputMap.SelectVertMod) && ImFabs(d.y) > 2;
+        const bool x_can_change = !ImHasFlag(IO.KeyMods,gp.InputMap.SelectHorzMod) && ImFabs(d.x) > 10;
+        const bool y_can_change = !ImHasFlag(IO.KeyMods,gp.InputMap.SelectVertMod) && ImFabs(d.y) > 10;
         // confirm
         if (IO.MouseReleased[gp.InputMap.Select]) {
             for (int i = 0; i < IMPLOT_NUM_X_AXES; i++) {
@@ -2175,6 +2193,12 @@ bool UpdateInput(ImPlotPlot& plot) {
                 plot.SelectRect.Max.x = full_width  ? plot.PlotRect.Max.x : ImMax(plot.SelectStart.x, IO.MousePos.x);
                 plot.SelectRect.Min.y = full_height ? plot.PlotRect.Min.y : ImMin(plot.SelectStart.y, IO.MousePos.y);
                 plot.SelectRect.Max.y = full_height ? plot.PlotRect.Max.y : ImMax(plot.SelectStart.y, IO.MousePos.y);
+
+                if (!x_can_change && y_can_change)
+                    plot.SelectRect.Min.x = plot.SelectRect.Max.x = plot.SelectStart.x;
+                if (!y_can_change && x_can_change)
+                    plot.SelectRect.Min.y = plot.SelectRect.Max.y = plot.SelectStart.y;
+
                 plot.SelectRect.Min  -= plot.PlotRect.Min;
                 plot.SelectRect.Max  -= plot.PlotRect.Min;
                 plot.Selected = true;
@@ -2415,6 +2439,14 @@ void SetupLegend(ImPlotLocation location, ImPlotLegendFlags flags) {
             legend.Flags = flags;
         legend.PreviousFlags = flags;
     }
+}
+
+void SetupLegendFont(ImFont* font) {
+    ImPlotContext& gp = *GImPlot;
+    IM_ASSERT_USER_ERROR((gp.CurrentPlot != nullptr && !gp.CurrentPlot->SetupLocked) || (gp.CurrentSubplot != nullptr && gp.CurrentPlot == nullptr),
+                         "Setup needs to be called after BeginPlot or BeginSubplots and before any setup locking functions (e.g. PlotX)!");
+    if (gp.CurrentItems != nullptr)
+        gp.CurrentItems->Legend.Font = font;
 }
 
 void SetupMouseText(ImPlotLocation location, ImPlotMouseTextFlags flags) {
