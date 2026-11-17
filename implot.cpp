@@ -1396,6 +1396,7 @@ void ShowAxisContextMenu(ImPlotAxis& axis, ImPlotAxis* equal_axis, bool /*time_a
     bool ticks           = axis.HasTickMarks();
     bool labels          = axis.HasTickLabels();
     bool labelsInside    = axis.HasTickLabelsInside();
+    bool flap_sync       = ImHasFlag(axis.Flags, ImPlotAxisFlagsFlap_Synchronized);
     double drag_speed    = (axis.Range.Size() <= DBL_EPSILON) ? DBL_EPSILON * 1.0e+13 : 0.01 * axis.Range.Size(); // recover from almost equal axis limits.
 
     if (axis.Scale == ImPlotScale_Time) {
@@ -1502,6 +1503,9 @@ void ShowAxisContextMenu(ImPlotAxis& axis, ImPlotAxis* equal_axis, bool /*time_a
         ImFlipFlag(axis.Flags, ImPlotAxisFlags_NoTickLabels);
     if (ImGui::Checkbox("Tick Labels Inside", &labelsInside))
         ImFlipFlag(axis.Flags, ImPlotAxisFlags_TickLabelsInside);
+    ImGui::Separator();
+    if (ImGui::Checkbox("Synchronized Range", &flap_sync))
+        ImFlipFlag(axis.Flags, ImPlotAxisFlagsFlap_Synchronized);
 }
 
 bool ShowLegendContextMenu(ImPlotLegend& legend, bool visible) {
@@ -1615,8 +1619,6 @@ void ShowPlotContextMenu(ImPlotPlot& plot) {
         EndDisabledControls(plot.TitleOffset == -1);
         if (ImGui::MenuItem("Mouse Position",nullptr,!ImHasFlag(plot.Flags, ImPlotFlags_NoMouseText)))
             ImFlipFlag(plot.Flags, ImPlotFlags_NoMouseText);
-        if (ImGui::MenuItem("Crosshairs",nullptr,ImHasFlag(plot.Flags, ImPlotFlags_Crosshairs)))
-            ImFlipFlag(plot.Flags, ImPlotFlags_Crosshairs);
         ImGui::EndMenu();
     }
     if (gp.CurrentSubplot != nullptr && !ImHasFlag(gp.CurrentSubplot->Flags, ImPlotSubplotFlags_NoMenus)) {
@@ -2127,8 +2129,8 @@ bool UpdateInput(ImPlotPlot& plot) {
 
     if (plot.Selecting) {
         const ImVec2 d = plot.SelectStart - IO.MousePos;
-        const bool x_can_change = !ImHasFlag(IO.KeyMods,gp.InputMap.SelectHorzMod) && ImFabs(d.x) > 2;
-        const bool y_can_change = !ImHasFlag(IO.KeyMods,gp.InputMap.SelectVertMod) && ImFabs(d.y) > 2;
+        const bool x_can_change = !ImHasFlag(IO.KeyMods,gp.InputMap.SelectHorzMod) && ImFabs(d.x) > 10;
+        const bool y_can_change = !ImHasFlag(IO.KeyMods,gp.InputMap.SelectVertMod) && ImFabs(d.y) > 10;
         // confirm
         if (IO.MouseReleased[gp.InputMap.Select]) {
             for (int i = 0; i < IMPLOT_NUM_X_AXES; i++) {
@@ -2175,6 +2177,12 @@ bool UpdateInput(ImPlotPlot& plot) {
                 plot.SelectRect.Max.x = full_width  ? plot.PlotRect.Max.x : ImMax(plot.SelectStart.x, IO.MousePos.x);
                 plot.SelectRect.Min.y = full_height ? plot.PlotRect.Min.y : ImMin(plot.SelectStart.y, IO.MousePos.y);
                 plot.SelectRect.Max.y = full_height ? plot.PlotRect.Max.y : ImMax(plot.SelectStart.y, IO.MousePos.y);
+
+                if (!x_can_change && y_can_change)
+                    plot.SelectRect.Min.x = plot.SelectRect.Max.x = plot.SelectStart.x;
+                if (!y_can_change && x_can_change)
+                    plot.SelectRect.Min.y = plot.SelectRect.Max.y = plot.SelectStart.y;
+
                 plot.SelectRect.Min  -= plot.PlotRect.Min;
                 plot.SelectRect.Max  -= plot.PlotRect.Min;
                 plot.Selected = true;
