@@ -630,6 +630,7 @@ IMPLOT_DEMO_TYPE_GATED(Demo_BarGroups_) {
 
     if (ImPlot::BeginPlot("Bar Group")) {
         ImPlot::SetupLegend(ImPlotLocation_East, ImPlotLegendFlags_Outside);
+        ImPlot::SetupLegendFont(ImGui::GetFont()); // Replace with any loaded ImFont* to customize the legend font.
         if (horz) {
             ImPlot::SetupAxes("Score","Student",ImPlotAxisFlags_AutoFit,ImPlotAxisFlags_AutoFit);
             ImPlot::SetupAxisTicks(ImAxis_Y1,positions, groups, glabels);
@@ -1293,11 +1294,12 @@ void Demo_PerIndexColors() {
     }
 
     // Colorful Shaded Plots
-    static float xs_shaded[1001], ys_shaded[1001], ys1_shaded[1001], ys2_shaded[1001], ys3_shaded[1001], ys4_shaded[1001];
+    static float xs_shaded[1001], xs2_shaded[1001], ys_shaded[1001], ys1_shaded[1001], ys2_shaded[1001], ys3_shaded[1001], ys4_shaded[1001];
     static ImU32 colors_shaded1[1001], colors_shaded2[1001];
     srand(0);
     for (int i = 0; i < 1001; ++i) {
         xs_shaded[i]  = i * 0.001f;
+        xs2_shaded[i] = xs_shaded[i] + 0.015f * sinf(8 * xs_shaded[i]);
         ys_shaded[i]  = 0.25f + 0.25f * sinf(25 * xs_shaded[i]) * sinf(5 * xs_shaded[i]) + RandomRange(-0.01f, 0.01f);
         ys1_shaded[i] = ys_shaded[i] + RandomRange(0.1f, 0.12f);
         ys2_shaded[i] = ys_shaded[i] - RandomRange(0.1f, 0.12f);
@@ -1324,7 +1326,7 @@ void Demo_PerIndexColors() {
         ImPlot::PlotLine("Uncertain Data", xs_shaded, ys_shaded, 1001, {
             ImPlotProp_LineColors, colors_shaded1
         });
-        ImPlot::PlotShaded("Overlapping", xs_shaded, ys3_shaded, ys4_shaded, 1001, {
+        ImPlot::PlotShaded("Overlapping", xs_shaded, ys3_shaded, xs2_shaded, ys4_shaded, 1001, {
             ImPlotProp_FillColors, colors_shaded2,
             ImPlotProp_FillAlpha, spec_shaded.FillAlpha
         });
@@ -1810,6 +1812,9 @@ void Demo_AutoFittingData() {
     ImGui::BulletText("Zoom and pan the X-axis. Disable Stems to see a difference in fit.");
     ImGui::BulletText("If ImPlotAxisFlags_RangeFit is disabled, the axis will fit ALL data.");
 
+    static bool stems_no_fit_x = false;
+    ImGui::Checkbox("Stems use ImPlotItemFlags_NoFitX", &stems_no_fit_x);
+
     static ImPlotAxisFlags xflags = ImPlotAxisFlags_None;
     static ImPlotAxisFlags yflags = ImPlotAxisFlags_AutoFit|ImPlotAxisFlags_RangeFit;
 
@@ -1829,7 +1834,10 @@ void Demo_AutoFittingData() {
     if (ImPlot::BeginPlot("##DataFitting")) {
         ImPlot::SetupAxes("X","Y",xflags,yflags);
         ImPlot::PlotLine("Line",data,101);
-        ImPlot::PlotStems("Stems",data,101);
+        ImPlotSpec stems_spec;
+        if (stems_no_fit_x)
+            stems_spec.Flags = ImPlotItemFlags_NoFitX;
+        ImPlot::PlotStems("Stems",data,101,0,1,0,stems_spec);
         ImPlot::EndPlot();
     };
 }
